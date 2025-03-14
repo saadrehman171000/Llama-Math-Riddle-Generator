@@ -1,16 +1,18 @@
-# Ignore Python bytecode files
+# Python
 __pycache__/
 *.pyc
 *.pyo
 
-# Ignore virtual environment folders
+# Virtual Environment
 venv/
 env/
 
-# Ignore Jupyter Notebook checkpoints
+# Jupyter
 .ipynb_checkpoints/
 
-
-# Ignore system files (e.g., macOS, Windows)
+# System
 .DS_Store
 Thumbs.db
+
+# Secrets
+.streamlit/
