@@ -5,6 +5,10 @@ import torch
 from safetensors.torch import load_file
 import json
 from torch.cuda.amp import autocast
+import os
+
+# Set environment variable to help manage memory allocation
+os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"  # Suppress TensorFlow warnings
 
 # Define paths for your model and adapter files
 model_path = "TinyLlama/TinyLlama-1.1B-Chat-v1.0"  # Pre-trained TinyLlama model from Hugging Face
@@ -35,11 +39,11 @@ model = get_peft_model(base_model, lora_config)
 # Load the LoRA fine-tuned weights using safetensors
 model.load_state_dict(load_file(adapter_model_path), strict=False)  # Using strict=False to avoid missing key errors
 
-# Set the model to use GPU if available, otherwise use CPU
-device = "cuda" if torch.cuda.is_available() else "cpu"
+# Force the model to run on CPU if GPU is not available or out of memory
+device = "cpu"  # Force the model to run on the CPU for large models
 model.to(device)
 
-# Clear GPU memory after model load to avoid fragmentation
+# Clear GPU memory after model load to avoid fragmentation (if using GPU)
 torch.cuda.empty_cache()
 
 # Streamlit UI setup
@@ -62,12 +66,13 @@ if st.button("Generate a New Math Riddle"):
         with torch.no_grad():
             output = model.generate(
                 inputs,
-                max_length=50,  # Reduced max length to save memory
+                max_length=50,  # Reduced max length for memory management
                 num_beams=5,
                 no_repeat_ngram_size=2,
-                temperature=0.7,
-                top_p=0.9,
-                top_k=50,
+                temperature=0.7,  # This will now work as we enable sampling
+                top_p=0.9,        # This will now work as we enable sampling
+                top_k=50,         # This will now work as we enable sampling
+                do_sample=True    # Enable sampling
             )
 
     generated_riddle = tokenizer.decode(output[0], skip_special_tokens=True)
@@ -84,12 +89,13 @@ if riddle_input:
         with torch.no_grad():
             output = model.generate(
                 inputs,
-                max_length=50,  # Reduced max length to save memory
+                max_length=50,  # Reduced max length for memory management
                 num_beams=5,
                 no_repeat_ngram_size=2,
-                temperature=0.7,
-                top_p=0.9,
-                top_k=50,
+                temperature=0.7,  # This will now work as we enable sampling
+                top_p=0.9,        # This will now work as we enable sampling
+                top_k=50,         # This will now work as we enable sampling
+                do_sample=True    # Enable sampling
             )
 
     answer = tokenizer.decode(output[0], skip_special_tokens=True)
