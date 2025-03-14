@@ -11,6 +11,13 @@ from huggingface_hub import login
 # Set environment variable to help manage memory allocation
 os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"  # Suppress TensorFlow warnings
 
+# Check if adapter files exist in the deployment
+ADAPTER_DIR = "fine-tuned-QA-tinyllama-1.1B"
+if not os.path.exists(ADAPTER_DIR):
+    st.error(f"Adapter directory not found: {ADAPTER_DIR}")
+    st.info("Please make sure to upload the adapter files to the deployment.")
+    st.stop()
+
 # Streamlit UI setup
 st.title("Math Riddle Generator and Factory")
 
@@ -42,8 +49,8 @@ def load_model():
             )
 
         # Check if adapter files exist locally
-        adapter_model_path = "fine-tuned-QA-tinyllama-1.1B/adapter_model.safetensors"
-        adapter_config_path = "fine-tuned-QA-tinyllama-1.1B/adapter_config.json"
+        adapter_model_path = f"{ADAPTER_DIR}/adapter_model.safetensors"
+        adapter_config_path = f"{ADAPTER_DIR}/adapter_config.json"
 
         if not os.path.exists(adapter_config_path):
             st.error(f"Adapter config not found at: {adapter_config_path}")
