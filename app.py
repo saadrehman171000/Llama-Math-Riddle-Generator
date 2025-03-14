@@ -4,6 +4,7 @@ from peft import get_peft_model, LoraConfig
 import torch
 from safetensors.torch import load_file
 import json
+from torch.cuda.amp import autocast
 
 # Define paths for your model and adapter files
 model_path = "TinyLlama/TinyLlama-1.1B-Chat-v1.0"  # Pre-trained TinyLlama model from Hugging Face
@@ -34,9 +35,12 @@ model = get_peft_model(base_model, lora_config)
 # Load the LoRA fine-tuned weights using safetensors
 model.load_state_dict(load_file(adapter_model_path), strict=False)  # Using strict=False to avoid missing key errors
 
-# Set the model to use GPU if available
+# Set the model to use GPU if available, otherwise use CPU
 device = "cuda" if torch.cuda.is_available() else "cpu"
 model.to(device)
+
+# Clear GPU memory after model load to avoid fragmentation
+torch.cuda.empty_cache()
 
 # Streamlit UI setup
 st.title("Math Riddle Generator and Factory")
@@ -53,16 +57,18 @@ if st.button("Generate a New Math Riddle"):
     prompt = "Generate a new math riddle:"
     inputs = tokenizer.encode(prompt, return_tensors="pt").to(device)
 
-    with torch.no_grad():
-        output = model.generate(
-            inputs,
-            max_length=100,
-            num_beams=5,
-            no_repeat_ngram_size=2,
-            temperature=0.7,
-            top_p=0.9,
-            top_k=50,
-        )
+    # Use mixed precision to save memory during inference
+    with autocast():
+        with torch.no_grad():
+            output = model.generate(
+                inputs,
+                max_length=50,  # Reduced max length to save memory
+                num_beams=5,
+                no_repeat_ngram_size=2,
+                temperature=0.7,
+                top_p=0.9,
+                top_k=50,
+            )
 
     generated_riddle = tokenizer.decode(output[0], skip_special_tokens=True)
     st.subheader("Generated Riddle:")
@@ -73,17 +79,18 @@ if riddle_input:
     # Tokenize the input and generate an answer using the model
     inputs = tokenizer.encode(f"Question: {riddle_input} Answer:", return_tensors="pt").to(device)
 
-    # Generate the answer
-    with torch.no_grad():
-        output = model.generate(
-            inputs,
-            max_length=100,
-            num_beams=5,
-            no_repeat_ngram_size=2,
-            temperature=0.7,
-            top_p=0.9,
-            top_k=50,
-        )
+    # Use mixed precision to save memory during inference
+    with autocast():
+        with torch.no_grad():
+            output = model.generate(
+                inputs,
+                max_length=50,  # Reduced max length to save memory
+                num_beams=5,
+                no_repeat_ngram_size=2,
+                temperature=0.7,
+                top_p=0.9,
+                top_k=50,
+            )
 
     answer = tokenizer.decode(output[0], skip_special_tokens=True)
     st.subheader("Generated Answer:")
@@ -93,3 +100,6 @@ if riddle_input:
 if st.button("Clear"):
     riddle_input = ""
     st.experimental_rerun()
+
+# Clear GPU memory after inference
+torch.cuda.empty_cache()

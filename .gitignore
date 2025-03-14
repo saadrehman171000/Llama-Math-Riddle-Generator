@@ -7,10 +7,6 @@ __pycache__/
 venv/
 env/
 
-# Ignore outputs and model checkpoints
-outputs/
-fine-tuned-QA-tinyllama-1.1B/
-
 # Ignore Jupyter Notebook checkpoints
 .ipynb_checkpoints/
 
