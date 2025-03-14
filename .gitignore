@@ -1,0 +1,20 @@
+# Ignore Python bytecode files
+__pycache__/
+*.pyc
+*.pyo
+
+# Ignore virtual environment folders
+venv/
+env/
+
+# Ignore outputs and model checkpoints
+outputs/
+fine-tuned-QA-tinyllama-1.1B/
+
+# Ignore Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+
+# Ignore system files (e.g., macOS, Windows)
+.DS_Store
+Thumbs.db
